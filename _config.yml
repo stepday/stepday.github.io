@@ -5,7 +5,7 @@ header-img: img/home-bg.jpg
 email: aganar@qq.com
 description: "不定时分享前端技术干货，为浩瀚的知识海洋贡献自己的一份力量!"
 keyword: "博客, 个人网站, 互联网, Web, JavaScript, 前端,Vue,Webpack,Karma"
-url: "https://stepday.me"              # your host, for absolute URL
+url: "https://stepday.github.io"              # your host, for absolute URL
 baseurl: ""                             # for example, '/blog' if your blog hosted on 'host/blog'
 
 
@@ -61,7 +61,7 @@ netease_comment: false
 
 # Google Analytics
 ga_track_id: 'UA-49627206-1'            # Format: UA-xxxxxx-xx
-ga_domain: stepday.me
+ga_domain: stepday.github.io
 
 
 
