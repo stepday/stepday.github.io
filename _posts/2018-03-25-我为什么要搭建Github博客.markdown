@@ -1,7 +1,7 @@
 ---
 layout:     post
 title:      "我为什么要搭建Github博客"
-subtitle:   "\"我为什么要搭建Github博客\""
+subtitle:   "\"将分享当做是一种日常\""
 date:       2018-03-25 08:39:00
 author:     "stepday"
 header-img: "img/post-bg-2015.jpg"
