@@ -4,7 +4,7 @@ title:      "关于JavaScript函数你不知道的一些杀手锏"
 subtitle:   "\"arguments还可以这样玩\""
 date:       2018-03-26 10:57:00
 author:     "stepday"
-header-img: "img/post-bg-function.jpg"
+header-img: "img/post-bg-js-version.jpg"
 catalog: true
 tags:
     - JavaScript
