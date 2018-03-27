@@ -4,7 +4,7 @@ title:      "JS匿名函数的正确打开方式"
 subtitle:   "\"避免全局变量污染以及函数名冲突\""
 date:       2018-03-26 21:00:00
 author:     "stepday"
-header-img: "img/post-bg-front.jpg"
+header-img: "img/post-bg-js-version.jpg"
 catalog: true
 tags:
     - JavaScript
