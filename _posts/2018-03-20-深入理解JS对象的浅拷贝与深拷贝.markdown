@@ -1,0 +1,187 @@
+---
+layout:     post
+title:      "深入理解JS对象的浅拷贝与深拷贝"
+subtitle:   "\"对象拷贝你有必要深入了解下\""
+date:       2018-03-30 11:00:00
+author:     "stepday"
+header-img: "img/post-bg-js-version.jpg"
+catalog: true
+tags:
+    - JavaScript
+---
+
+## 前言
+> 对于JavaScript内的基本数据类型（null、undefined、boolean、number、string）来说，所谓的“拷贝”就是简单的值的复制操作。标题中所指的拷贝是针对复杂数据类型（引用类型）Object来进行剖析的。
+
+---
+
+## 正文
+> 对象实例我们都知道它存储的是对象存储在内存中的一个地址（熟称“指针”）。当我们简单的将一个对象实例赋值给另外一个对象实例后，其实这两个对象实例存储的指针都是一样的。
+
+```
+var objA = {
+    name:"stepday",
+    sex:"男",
+    age:"30"
+};
+
+var objACopy = objA;
+
+objACopy.name = "jake";
+
+console.log(objA.name);//jake
+```
+从上面例子可以看出复制的objACopy实例修改了name属性，最后通过输出objA实例的name属性也发生了变化，这个就是对象的浅拷贝存在的一个问题，共享同一片内存空间的问题。
+
+
+### 什么是深拷贝？
+从浅拷贝可以直观感知到深拷贝需要做到的就是复制的实例能够重新分配一块内存空间用来存储相应的数据，不共享内存空间，这样某个实例修改后不影响另外实例的值。深拷贝的手段有以下几种：
+
+1、Object.assign 方式
+> MDN上的介绍是能将所有可枚举属性的值从一个或多个源对象复制到目标对象，它是返回目标对象的。 看个示例：
+
+```
+var objA = {};
+var objB = {
+    name:"stepday",
+    sex:"男"
+};
+objA = Object.assign({},objB);
+
+//修改objB内的属性
+objB.name = "jake";
+
+console.log(objA.name); //stepday 并未跟随objB一起变更 这个时候objA和objB的内存空间就不是同一块了的
+```
+注意它是可枚举属性可以复制到位，但是当源对象内的嵌套了对象的则只能复制指针，换句话说源对象内嵌套了对象的，Object.assign也做不到深度拷贝；比如下面这个例子：
+
+```
+var objA = {};
+var objB = {
+    name:"stepday",
+    sex:"男",
+    link:{
+        tel:"13282151626",
+        addr:"杭州西湖"
+    }
+};
+objA = Object.assign({},objB);
+
+//修改objB内的link内的addr
+objB.link.addr = "北京";
+
+console.log(objA.link.addr);//北京 修改objB的link对象影响了objA的link对象的值，意味着这个link存储的还是同一片内存空间
+
+```
+2、借助JSON对象进行暴力转换
+> 看下面代码说话吧
+
+```
+var objA = {};
+var objB = {
+    name:"stepday",
+    sex:"男",
+    link:{
+        tel:"13282151626",
+        addr:"杭州西湖"
+    }
+};
+
+objA = JSON.parse(JSON.stringify(objB));
+
+//修改objB
+objB.link.addr = "北京";
+
+console.log(objA.link.addr); //杭州西湖
+
+```
+通过将对象转换为json字符串，切断了对象与内存区块之间的指针指向关系，再将JSON串转换为对象重新分配内存空间。这样则不会相互影响了。
+
+3、借助jQuery的extend(target,...,source)方法
+> jQuery.extend(target,...,source) 方法可以对多个对象进行合并深度拷贝，然后赋值给target对象 如果target为null则可以用目标对象来接收其函数执行的返回值也是一样的。看下列代码：
+
+```
+var a = { 
+            name:"stepday"
+            link:{
+                addr:"杭州"
+            }
+    },
+    b = { sex:"男"};
+    c = {};
+$.extend(c,a); //这样就a对象深度复制到c实例上去了
+
+a.link.addr = "北京";
+
+console.log(c.link.addr); //杭州
+
+//合并a和b对象后复制到c对象实例
+$.extend(c,a,b);
+
+//target为null的情况 需要用变量来接收函数返回值
+c = $.extend(null,a,b);
+```
+通过对jQuery的extend函数源码的分析，其实也就是用了递归不断的复制属性节点，遇到object对象则new一个重新分配内存空间
+
+
+4、通过prototype原型链扩展clone方法
+> 当我们要很方便的克隆一个对象实例给另外对象实例的时候，我们可以在Obejct的原型链上重载或扩展clone方法来实现对象的深度拷贝，扩展的函数源码如下所示：
+
+```
+Object.prototype.clone = function(){
+    //判断当前待拷贝对象的类型
+    if(null == this || typeof this != "object") return this;
+    
+    //判断是否为简单的数据类型 如果是则直接返回数据值
+    if(this instanceof Number || this instanceof String || this instanceof Boolean) return this.valueOf;
+    
+    //判断是否为日期类型
+    if(this instanceof Date)
+    {
+        var copy = new Date();
+        copy.setTime(this.getTime());
+        return copy;
+    }
+    
+    //剩下的就是Obejct类型了
+    if(this instanceof Object){
+        var copy = (this instanceof Array)?[]:{};
+        for(var attr in this){
+            //当前属性是否为非原型链上的属性 这样判断可以提升不少for in性能
+            if(this.hasOwnProperty(attr)){
+                copy[attr] = this[attr]?this[attr].clone():this[attr];
+            }
+        }
+    }
+    
+    //都不是则直接抛出异常
+    throw new Error("数据类型不正确，没法进行复制");
+}
+```
+我们来试用一下这个扩展的函数:
+
+```
+var objA = { 
+      name:"stepday",
+      link:{
+          addr:"北京"
+      }
+     };
+     
+//拷贝一个对象至新实例
+var objB = objA.clone();
+
+//修改objA内的link addr属性
+objA.link.addr = "杭州";
+
+console.log(objA.link.addr); //北京
+```
+
+
+## 总结
+1、在进行对象复制的时候，切记避免浅拷贝问题；
+
+2、Object.assign(target,....,sources) 无法达到深度拷贝的目的；
+
+3、对象的深度拷贝还是要明白其中的细节和原理，主要就是避免共享内存空间的问题，这个问题解决了就能够达到对象深度拷贝的目的。
+
